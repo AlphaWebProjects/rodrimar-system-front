@@ -23,7 +23,6 @@ export default function App (){
             <UserProvider>
                 <BrowserRouter>
                     <Routes>
-                        
                         <Route path="/" element={
                             <ProtectedRouteGuard>
                                 <Home/>
@@ -40,7 +39,6 @@ export default function App (){
 }
 
 function ProtectedRouteGuard({ children }) {
-    if( true ) <>{children}</>
     const token = useToken();
   
     if (!token) {
