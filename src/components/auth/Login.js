@@ -3,22 +3,27 @@ import logo from "../../assets/images/logoAuth/logo-blue.png"
 import { useCustomForm } from "../../hooks/useCustomForms"
 import { toast } from "react-toastify"
 import api from "../../services/API"
-import { useContext } from "react"
+import { useContext, useState } from "react"
 import useNavigateAndMoveUp from "../../hooks/useNavigateAndMoveUp"
 import UserContext from "../../context/UserContext"
 import { ButtonWrapper } from "./ButtonWrapper"
 import Button from "../../common/form/Button"
 import { InputWrapper } from "./InputWrapper"
 import Input from "../../common/form/Input"
+import { Spinner } from "../../common/spinner/Spinner"
 
 export default function Login () {
 
     const [form, handleForm] = useCustomForm()
     const { setUserData } = useContext(UserContext);
+    const [isLoading, setIsLoading] = useState(false)
+
     const navigateAndMoveUp = useNavigateAndMoveUp();
 
     async function SubmitForms(){
+        setIsLoading(true)
         if (!form.email|| !form.password){
+            setIsLoading(false)
             return toast.error("Preencha todos os Campos")
         }
 
@@ -34,22 +39,25 @@ export default function Login () {
 
                 setUserData(response.data)
                 toast.dark("Login realizado com sucesso!")
-                navigateAndMoveUp({locate: "/"})
+                setIsLoading(false)
+                navigateAndMoveUp({locate: ""})
+                return
             }
 
         } catch (error) {
             console.log(error)
-            //setIsLoading(false)
+            setIsLoading(false)
             toast.error("Verifique os valores !!")
+            return
         }
     }
 
     return(
-        <Container>
+        <Container isLoading={isLoading}>
 
-            <img src={logo} alt="Nick Te Ajuda"/>
+            <img src={logo} alt="Nick Te Ajuda" onClick={() => setIsLoading(!isLoading)}/>
 
-            <UserActionsContainer>
+            <UserActionsContainer isLoading={isLoading}>
 
                 <InputWrapper width={"100%"}>
                     <Input 
@@ -59,6 +67,7 @@ export default function Login () {
                         value={form.email} 
                         onChange={handleForm}
                         width="80%"
+                        disabled={isLoading}
                     />
                 </InputWrapper>
                 <InputWrapper width={"100%"}>
@@ -69,6 +78,7 @@ export default function Login () {
                         value={form.password} 
                         onChange={handleForm}
                         width="80%"
+                        disabled={isLoading}
                     />
                 </InputWrapper>
                 <ButtonWrapper width={"100%"}>
@@ -76,6 +86,8 @@ export default function Login () {
                 </ButtonWrapper>
 
             </UserActionsContainer>
+
+            {isLoading ? (<Spinner/>):(<></>)}
             
         </Container>
     )
@@ -92,9 +104,11 @@ const Container = styled.div`
     align-items: center;
     padding-top: 5vh;
     row-gap: 5vh;
+    position: relative;
     img {
         max-height: 150px;
         max-width: 60%;
+        opacity: ${props => props.isLoading ? ("0.2"):("1")};
     }
     @media (max-width: 850px) {
         width: 100%;
@@ -106,4 +120,6 @@ const UserActionsContainer = styled.div`
     display: flex;
     flex-direction: column;
     row-gap: 3vh; 
+    opacity: ${props => props.isLoading ? ("0.2"):("1")};
+    pointer-events: ${props => props.isLoading ? ("none"):("initial")};
 `
