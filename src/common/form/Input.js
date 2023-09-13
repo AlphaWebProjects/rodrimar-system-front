@@ -13,36 +13,16 @@ export default function Input({ mask = '', maskChar = '', formatChars, variant =
 }
 
 const StyledTextField = styled(TextField)`
-  
   margin-top: 8px !important;
   background-color: ${(props) => props.background || 'initial'};
   pointer-events: ${(props) => props.events || 'initial'};
   width: ${(props) => props.width || 'auto'};
-
-  & .MuiFormLabel-root {
-    color: #FFFFFF !important;  // Altere para a cor desejada para o label no estado padrão
+  & .MuiOutlinedInput-root {
+    &.Mui-focused fieldset {
+      border-color: #391FAA;  // Altere para a cor que você deseja quando o input está em foco
+    }
   }
-  & .MuiInputBase-input {
-    color: #FFFFFF !important; // Altere para a cor que você deseja para a fonte no estado padrão
-  }  
-  // Alterar a cor da borda no estado padrão
-  & .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline {
-    border-color: #FFFFFF; // Altere para a cor que você deseja no estado padrão
-  }
-
-  & .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
-    border-color: #FFFFFF; // Altere para a cor da borda que você deseja no hover
-  }
-
-  & .MuiOutlinedInput-root:hover .MuiInputBase-input {
-    color: #FFFFFF; // Altere para a cor da fonte que você deseja no hover
-  }
-
-  & .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
-    border-color: #d4ed6cff; // Altere para a cor que você deseja quando o input está em foco
-  }
-
-  & .MuiInputLabel-root.Mui-focused {
-    color: #d4ed6cff;  // Altere para a cor que você deseja quando o rótulo está focado
+  & label.Mui-focused {
+    color: #0F014D;  // Altere para a cor que você deseja quando o rótulo está focado
   }
 `;
