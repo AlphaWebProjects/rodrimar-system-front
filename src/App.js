@@ -1,6 +1,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { ToastContainer } from "react-toastify"
 import Home from "./pages/home/Home";
+import Auth from "./pages/auth/Auth";
+import { UserProvider } from "./context/UserContext";
+import useToken from "./hooks/useToken";
 export default function App (){
  
     return(
@@ -17,32 +20,32 @@ export default function App (){
             pauseOnHover
             theme="dark"
             />
-            <>
+            <UserProvider>
                 <BrowserRouter>
                     <Routes>
-                        <Route 
-                            path="/" 
-                            element={
-                                <>
-                                    <Home />
-                                </>                                
-                            } 
-                        />
+                        
+                        <Route path="/" element={
+                            <ProtectedRouteGuard>
+                                <Home/>
+                            </ProtectedRouteGuard>
+                        } />
+                        <Route path="/auth" element={<Auth /> } />
                         <Route path="/*" element={<Navigate to="/" />} />
                     </Routes>
                 </BrowserRouter>
-            </>
+            </UserProvider>
 
         </>
     )
 }
 
-// function ProtectedRouteGuard({ children }) {
-//     const token = useToken();
+function ProtectedRouteGuard({ children }) {
+    if( true ) <>{children}</>
+    const token = useToken();
   
-//     if (!token) {
-//       return <Navigate to="/auth" />;
-//     }
+    if (!token) {
+      return <Navigate to="/auth" />;
+    }
   
-//     return <>{children}</>;
-// }
+    return <>{children}</>;
+}

@@ -14,11 +14,11 @@ const StyledMuiButton = styled(MuiButton)`
   font-size: ${(props) => props.fontsize || '18px !important'};
   width: ${(props) => props.width || 'auto'};
   height: ${(props) => props.height || 'auto'};
-  background-color: ${(props) => props.background || '#02131B !important'};
-  color: ${(props) => props.fontColor || '#052E1B !important'};
+  background-color: ${(props) => props.background || '#0F014D !important'};
+  color: ${(props) => props.fontColor || '#FFFFFF !important'};
   margin-top: ${(props) => props.margintop || '0'};
 
   &:hover {
-    background-color: ${(props) => props.backgroundhover || '#032230 !important'};
+    background-color: ${(props) => props.backgroundhover || '#391FAA !important'};
   }
 `;
