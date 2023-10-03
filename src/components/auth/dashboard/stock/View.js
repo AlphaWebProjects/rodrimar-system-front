@@ -11,9 +11,7 @@ import SubCategorieContainer from "./view-components/ItemsComponents.js/SubCateg
 
 export default function View(){
 
-    const [categorieValue, setCategorieValue] = useState('allcategories');
-    const [subCategorieValue, setSubCategorieValue] = useState('allsubcategories');
-    const [orderValue, setOrderValue] = useState('first');
+    const [categorieValue, setCategorieValue] = useState('');
     const [itemInputValue, setItemInputValue] = useState('');
     const [categorieInputValue, setCategorieInputValue] = useState('');
     const [categoriesViewBool, setCategoriesViewBool] = useState(false);
@@ -21,9 +19,18 @@ export default function View(){
     const [showCategoriesPopup, setShowCategoriesPopup] = useState(false);
     const [subCategorieInputValue, setSubCategorieInputValue] = useState({name: '', categorie: ''});
     const [showSubCategoriesPopup, setShowSubCategoriesPopup] = useState(false);
+    const [subCategorieFilter, setSubCategorieFilter] = useState(dummys[1])
+    const [newItemSubCategorieId, setNewItemSubCategorieId] = useState('');
+    const [newItemName, setNewItemName] = useState('')
     
     function productsSubmit(event){
         event.preventDefault();
+        if(categorieValue != ''){
+            const filteredArr = subCategorieFilter.filter((e) => e.categorieId === Number(categorieValue))
+            setSubCategorieFilter(filteredArr)
+        }else{
+            setSubCategorieFilter(dummys[1])
+        }
     };
 
     function addCategorie(){
@@ -57,6 +64,19 @@ export default function View(){
                 createdBy: 'Admin-2'
             }
         )
+    }
+
+    function addNewItem(){
+
+        if(newItemSubCategorieId === ''){
+            toast('Selecione uma sub-categoria para o novo item');
+            return
+        }
+        
+        if(newItemName === ''){
+            toast('Digite um nome para o novo item')
+            return
+        }
     }
 
     return(
@@ -111,58 +131,48 @@ export default function View(){
             </>
             }
 
-            <form onSubmit={productsSubmit}>
+            <form>
                 <p>Itens</p>
                 <>
-                    <label htmlFor="selectBox">Selecione uma categoria:</label>
-                    <Select name="filter" id="filter" onChange={(e) => e.target.value(categorieValue)}>
+                    <label htmlFor="selectBox">Registrar novo item:</label>
+                    <Select onChange={(e) => setNewItemSubCategorieId(e.target.value)} name="filter" id="filter">
+                        <option value={''}>Selecione</option>
+                        {dummys[1].map((obj) => (
+                            <option value={obj.id}>{obj.name}</option>
+                        ))} 
+                            
+                    </Select>
 
-                        <option value="allcategories">Todas</option>
+                    <input value={newItemName} onChange={(e) => setNewItemName(e.target.value)} placeholder="Nome do novo item..."></input>
+                </>
+                
+                <ButtonWrapper width={"40%"}>
+                    <Button onClick={addNewItem} width={"50%"} height={"50px"}>{"Registrar"}</Button>
+                </ButtonWrapper>
+
+                <>
+                    <label htmlFor="selectBox">Busque por categoria:</label>
+                    <Select name="filter" id="filter" onChange={(e) => setCategorieValue(e.target.value)}>
+
+                        <option value="">Todas</option>
                         {dummys[0].map((obj) => (
                             <option value={obj.id}>{obj.name}</option>
                         ))} 
                             
                     </Select>
                 </>
-
-                <>
-                    <label htmlFor="selectBox">Selecione uma sub-categoria:</label>
-                    <Select name="filter" id="filter" onChange={(e) => setSubCategorieValue(e.target.value)}>
-
-                        <option value="allsubcategories">Todas</option>
-                        {dummys[1].map((obj) => (
-                            <option value={obj.id}>{obj.name}</option>
-                        ))}
-                            
-                        
-                    </Select>
-                </>
-                
-                <>
-                    <label htmlFor="selectBox">Selecione uma ordem:</label>
-                    <Select name="products" id="products" onChange={(e) => setOrderValue(e.target.value)}>
-
-                            <option value="first">Primeiro inserido</option>
-                            <option value="last">Último inserido</option>
-                            <option value="alphabetic">Ordem alfabética</option>
-                        
-                    </Select>
-                </>
-
-                <label >Busque por um item específico:</label>
-                <input placeholder='Digite aqui...' type='text' value={itemInputValue} onChange={(e) => setItemInputValue(e.target.value)}></input>
                 
                 <ButtonWrapper width={"40%"}>
-                    <Button type='submit' width={"50%"} height={"50px"}>{"Buscar"}</Button>
+                    <Button onClick={productsSubmit} width={"50%"} height={"50px"}>{"Buscar"}</Button>
                 </ButtonWrapper>
 
-                <ViewContainer>
-                    {dummys[1].map((obj) => (
-                        <SubCategorieContainer obj={obj} dummys={dummys}/>
-                    ))}
-                </ViewContainer>
-
             </form>
+
+            <ViewContainer>
+                {subCategorieFilter.map((obj) => (
+                    <SubCategorieContainer obj={obj} dummys={dummys}/>
+                ))}
+            </ViewContainer>
 
             
             
@@ -237,7 +247,7 @@ form{
     justify-content: center;
     flex-direction: column;
     label{
-        margin: 25px 0 15px 0;
+        margin: 40px 0 15px 0;
     }
     input{
         width: 50%;
@@ -245,6 +255,7 @@ form{
         border: none;
         border-radius: 10px;
         margin-bottom: 20px;
+        margin-top: 10px;
     }
 }
 `
@@ -267,6 +278,8 @@ width: 50%;
 height: 50px;
 border: none;
 border-radius: 10px;
+margin-bottom: 10px;
+margin-top: 10px;
 `
 const EditButton = styled.div`
 display: ${props => (props.show ? 'none' : 'block')};

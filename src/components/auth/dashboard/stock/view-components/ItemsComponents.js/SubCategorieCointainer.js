@@ -1,34 +1,55 @@
-import styled from "styled-components"
-import { useContext, useState } from "react"
+import styled from "styled-components";
+import { useContext, useState } from "react";
 import ItensInStock from "./ItemsInStock";
 import { dummys } from "../../Dummys";
 import Button from "../../../../../../common/form/Button";
 import { ButtonWrapper } from "../../../../ButtonWrapper";
-import { AiFillPlusCircle } from 'react-icons/ai';
-import test from '../../../../../../assets/images/products/test.png'
+import test from '../../../../../../assets/images/products/test.png';
+import ItemsToAdd from "./ItemsToAdd";
+import { toast } from "react-toastify"
 
 export default function SubCategorieContainer(props){
 
     const filteredCategorie = dummys[0].filter((e) => e.id === props.obj.categorieId)
     const filteredItems = dummys[2].filter((e) => e.subCategorieId === props.obj.id)
 
-    const [showPopup, setShowPopup] = useState(false);
+    const [addStockItemData, setAddStockItemData] = useState('')
+    const [price, setPrice] = useState('')
+    const [addQuantity, setAddQuantity] = useState('')
+    const [filtered, setFiltered] = useState([]) 
 
-    function ItemSubmit(event){
+    function addItem(event){
 
-        event.preventDefault()
-        console.log('submit')
-        //mandar um delete com o id do item no estoque
-    }
+        event.preventDefault();
 
-    function addToStock(itemId, itemName){
+        if(addStockItemData === ''){
+            toast('Selecione um item')
+            return
+        }
+
+        const priceConverted = Number(price)
+        if(priceConverted <= 0 || priceConverted === '' || price === ''){
+            toast('Dê um preço válido ao item')
+            return
+        }
+
+        const quantityConverted = Math.floor(Number(addQuantity))
+        if(quantityConverted <= 0 || quantityConverted === '' || addQuantity === ''){
+            toast('Insira uma quantidade válida')
+            return
+        }
+
+        if(quantityConverted > 10){
+            toast('Máximo de itens por vez atingido')
+            return
+        }
 
         const obj = {
             id: (dummys[3].length + 1),
-            itemId: itemId,
-            name: itemName,
+            itemId: Number(addStockItemData[0]),
+            name: addStockItemData.slice(4),
             insertedAt: '25/09/2023',
-            value: '55',
+            value: priceConverted.toFixed(2),
             insertedBy: 'Admin-1'
         };
 
@@ -41,7 +62,22 @@ export default function SubCategorieContainer(props){
 
         <h2>{props.obj.name}</h2>
         <h3>{`(${filteredCategorie[0].name})`}</h3>
-        <Plus/>
+
+        <ItemAddForm>
+            <form>
+                <AddSelect onChange={(e) => setAddStockItemData(e.target.value)} required>
+                    
+                    <ItemsToAdd filteredItems={filteredItems}/>
+
+                </AddSelect>
+
+                <input value={price} onChange={(e) => setPrice(e.target.value)} required type='number' placeholder='Preço do item...'></input>
+
+                <input value={addQuantity} onChange={(e) => setAddQuantity(e.target.value)} required type='number' placeholder='Quantidade...'></input>
+
+                <button onClick={addItem}>Adicionar item ao estoque</button>
+            </form>
+        </ItemAddForm>
 
         <Container>
             {filteredItems.map((e) => (
@@ -54,17 +90,13 @@ export default function SubCategorieContainer(props){
                         
                         <div>
 
-                            <Select value='Adicionados ao estoque:'>
+                            <DownSelect>
                                 
-                                <ItensInStock readOnly items={dummys[2]} item={e} itemsInStock={dummys[3]}/>
-                            
-                            </Select>
+                                <ItensInStock readOnly filtered={filtered} setFiltered={setFiltered} items={dummys[2]} item={e} itemsInStock={dummys[3]}/>                            
+
+                            </DownSelect>
                                     
                         </div>
-
-                        <ButtonWrapper width={'60%'}>
-                            <Button fontsize={'5'} type='submit' width={"70%"} height={"25px"}>Dar baixa</Button>
-                        </ButtonWrapper>
 
                     </SubContainer>
 
@@ -143,40 +175,66 @@ form{
     justify-content: center;
     flex-direction: column;
 }
-`
-const Select = styled.select`
-margin-top: 8px;
-width: 90%;
-height: 30px;
-border: 1px solid black;
-border-radius: 6px;
-`
-const Plus = styled(AiFillPlusCircle)`
-    width: 20px;
-    height: 20px;
-    margin-left: 0.5%;
-    color: #0F014D;
-    cursor: pointer;
-    &:hover{
-        color:blue;
+input{
+    margin: 8px 0 0 0 !important;
+    width: 50% !important;
+    height: 30px !important;
+    border: 1px solid #0F014D !important;
+    border-radius: 6px !important;
     }
 `
-const PopupContainer = styled.div`
-margin-top: 10px;
-width: auto;
-height: auto;
-background-color: white;
-padding: 20px 20px 15px 20px;
-border: 1px solid #0F014D;
-display: block;
-border-radius: 10px;
-align-items: center;
-justify-content: center;
-text-align: center;
-input{
-    border: 1px solid #0F014D;
-    border-radius: 10px;
-    height: 12px;
-    margin-left: 0px;
+const DownSelect = styled.div`
+margin-top: 8px;
+width: 90%;
+height: 120px !important;
+border-radius: 6px;
+select{
+    width: 100%;
+    height: 100%;
+    border: 1px solid black;
+    border-radius: 6px;
 }
-`;
+input{
+    margin: 8px 0 0 0 !important;
+    width: 50% !important;
+    height: 60% !important;
+    border: 1px solid #0F014D !important;
+    border-radius: 6px !important;
+}
+`
+const AddSelect = styled.select`
+width: 60%;
+height: 30px;
+border: 1px solid #0F014D;
+border-radius: 6px;
+`
+const ItemAddForm = styled.div `
+display: flex !important;
+align-items: center !important;
+justify-content: center !important;
+flex-direction: row !important;
+margin-left: 15px !important;
+form{
+    width: 100%;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-direction: row !important;
+    button{
+        background-color: #0F014D;
+        border-radius: 8px;
+        color: white;
+        margin: 0 0 2px 8px;
+        &:hover{
+            cursor: pointer;
+        }
+    }
+    input{
+        margin: 0 0 0 10px !important;
+        width: 50% !important;
+        height: 30px !important;
+        border: 1px solid #0F014D !important;
+        border-radius: 6px !important;
+    }
+}
+`
