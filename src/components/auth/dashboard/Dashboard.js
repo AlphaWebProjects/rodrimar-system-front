@@ -5,27 +5,58 @@ import { ButtonWrapper } from "../ButtonWrapper"
 import Button from "../../../common/form/Button"
 import { useContext, useState } from "react"
 import Stock from "./stock/Stock"
+import Relatories from "./relatories/Relatories"
 
 export default function Dashboard(){
 
-    const [dashboardComponent, setDashboardComponent] = useState('');
-    const [stockComponent, setStockComponent] = useState('oi');
+    const [stock, setStock] = useState(undefined);
+    const [relatories, setRelatories] = useState(undefined)
 
+    function viewStock(){
+        setStock(true)
+        setRelatories(false)
+    }
+
+    function viewRelatories(){
+        setStock(false)
+        setRelatories(true)
+    }
+    
     return(
         <Container>
            <Header>
                 <ButtonWrapper width={"100%"}>
-                    <Button onClick={() => setDashboardComponent(<Stock />)} width={"50%"} height={"75px"}>{"Estoque"}</Button>
+                    <Button width={"50%"} onClick={viewStock} height={"75px"}>{"Estoque"}</Button>
                 </ButtonWrapper>
+                
                 <ButtonWrapper width={"100%"}>
-                    <Button width={"50%"} height={"75px"}>{"None"}</Button>
-                </ButtonWrapper>
-                <ButtonWrapper width={"100%"}>
-                    <Button width={"50%"} height={"75px"}>{"None"}</Button>
+                    <Button onClick={viewRelatories} width={"50%"} height={"75px"}>{"Relatórios"}</Button>
                 </ButtonWrapper>
            </Header>
 
-           {dashboardComponent}
+           {(stock === true && relatories === false)
+
+                ?
+
+                <Stock/>
+
+                :
+
+                ''
+
+           }
+
+           {(stock === false && relatories === true)
+           
+                ?
+
+                <Relatories/>
+
+                :
+
+                ''
+
+           }
 
         </Container>
     )
