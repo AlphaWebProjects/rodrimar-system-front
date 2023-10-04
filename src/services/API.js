@@ -9,10 +9,14 @@ function CreateSession(body) {
 function LogoutSession(token) {
     return axios.delete(`${BASE_URL}/auth/logout`, {headers: { Authorization: `Bearer ${token}`}});
 }
+function CreateImage({formData, token}) {
+    return axios.post(`${BASE_URL}/image`, formData, {headers: { Authorization: `Bearer ${token}`}});
+}
 
 const api = {
     CreateSession,
-    LogoutSession
+    LogoutSession,
+    CreateImage
 };
 
 export default api;
