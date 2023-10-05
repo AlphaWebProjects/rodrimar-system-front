@@ -8,6 +8,8 @@ import CategorieComponent from "./view-components/CategorieComponent"
 import SubCategorieComponent from "./view-components/SubCategorieComponent"
 import { dummys } from "./Dummys"
 import SubCategorieContainer from "./view-components/ItemsComponents.js/SubCategorieCointainer"
+import CreateImage from "../../../image/CreateImage"
+import UserContext from "../../../../context/UserContext"
 
 export default function View(){
 
@@ -70,7 +72,7 @@ export default function View(){
         )
     }
 
-    function addNewItem(){
+    async function addNewItem(){
 
         if(newItemSubCategorieId === ''){
             toast('Selecione uma sub-categoria para o novo item');
@@ -80,6 +82,27 @@ export default function View(){
         if(newItemName === ''){
             toast('Digite um nome para o novo item')
             return
+        }
+
+        if(!imageFile){
+            return toast.error("Selecione uma imagem")
+        }
+
+        const formData = new FormData();
+        formData.append('imageFile', imageFile);
+
+        try {           
+            const response = await api.CreateImage({token: userData.token, formData})
+
+            if( response.status === 201){
+                toast.dark("Imagem enviada com Sucesso !!") //pode esse toast caso necessario
+            }
+            const { imageId } = response.data
+            console.log(imageId)
+
+        } catch (error) {
+            console.log(error)
+            toast.error("Verifique os valores ou contate o desenvolvedor")
         }
     }
 
@@ -148,6 +171,8 @@ export default function View(){
                     </Select>
 
                     <input value={newItemName} onChange={(e) => setNewItemName(e.target.value)} placeholder="Nome do novo item..."></input>
+
+                    <CreateImage imageFile={imageFile} setImageFile={setImageFile}/>
                 </>
                 
                 <ButtonWrapper width={"40%"}>

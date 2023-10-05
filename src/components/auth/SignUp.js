@@ -4,22 +4,18 @@ import { useCustomForm } from "../../hooks/useCustomForms"
 import { toast } from "react-toastify"
 import api from "../../services/API"
 import { useContext, useState } from "react"
-import useNavigateAndMoveUp from "../../hooks/useNavigateAndMoveUp"
 import UserContext from "../../context/UserContext"
 import { ButtonWrapper } from "./ButtonWrapper"
 import Button from "../../common/form/Button"
 import { InputWrapper } from "./InputWrapper"
 import Input from "../../common/form/Input"
 import { Spinner } from "../../common/spinner/Spinner"
-import { ChangeAuthButton } from "./SignUp"
 
-export default function Login ({changeAuth}) {
+export default function SignUp ({changeAuth}) {
 
     const [form, handleForm] = useCustomForm()
     const { setUserData } = useContext(UserContext);
     const [isLoading, setIsLoading] = useState(false)
-
-    const navigateAndMoveUp = useNavigateAndMoveUp();
 
     async function SubmitForms(){
         setIsLoading(true)
@@ -30,18 +26,20 @@ export default function Login ({changeAuth}) {
 
         const body = {
             email: form.email,
-            password: form.password
+            name: form.name,
+            password: form.password,
+            passwordVerify: form.passwordVerify
         }
 
         try {           
-            const response = await api.CreateSession(body)
+            const response = await api.CreateUser(body)
 
-            if( response.status === 200){
+            if( response.status === 201){
 
                 setUserData(response.data)
-                toast.dark("Login realizado com sucesso!")
+                toast.dark("Cadastro realizado com sucesso!")
                 setIsLoading(false)
-                navigateAndMoveUp({locate: ""})
+                changeAuth()
                 return
             }
 
@@ -73,6 +71,17 @@ export default function Login ({changeAuth}) {
                 </InputWrapper>
                 <InputWrapper width={"100%"}>
                     <Input 
+                        label="Nome"     
+                        type="text" 
+                        name={"name"} 
+                        value={form.name} 
+                        onChange={handleForm}
+                        width="80%"
+                        disabled={isLoading}
+                    />
+                </InputWrapper>
+                <InputWrapper width={"100%"}>
+                    <Input 
                         label="Senha"     
                         type="password" 
                         name={"password"} 
@@ -82,9 +91,20 @@ export default function Login ({changeAuth}) {
                         disabled={isLoading}
                     />
                 </InputWrapper>
+                <InputWrapper width={"100%"}>
+                    <Input 
+                        label="Digite sua senha novamente"     
+                        type="password" 
+                        name={"passwordVerify"} 
+                        value={form.passwordVerify} 
+                        onChange={handleForm}
+                        width="80%"
+                        disabled={isLoading}
+                    />
+                </InputWrapper>
                 <ButtonWrapper width={"100%"}>
-                    <Button onClick={() => SubmitForms()} width={"80%"} height={"55px"}>{"Entrar"}</Button>
-                    <ChangeAuthButton onClick={changeAuth}>Criar um Cadastro</ChangeAuthButton>
+                    <Button onClick={() => SubmitForms()} width={"80%"} height={"55px"}>{"Criar"}</Button>
+                    <ChangeAuthButton onClick={changeAuth}>Ja tenho um Cadastro</ChangeAuthButton>
                 </ButtonWrapper>
 
             </UserActionsContainer>
@@ -97,7 +117,7 @@ export default function Login ({changeAuth}) {
 
 const Container = styled.div`
     width: 490px;
-    height: 560px;
+    height: 740px;
     background-color: #FFFFFF;
     box-shadow: 0 8px 50px 0 #00000038;
     border-radius: 10px;
@@ -124,4 +144,14 @@ const UserActionsContainer = styled.div`
     row-gap: 3vh; 
     opacity: ${props => props.isLoading ? ("0.2"):("1")};
     pointer-events: ${props => props.isLoading ? ("none"):("initial")};
+`
+export const ChangeAuthButton = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 1.5vh;
+    user-select: none;
+    cursor: pointer;
+    text-decoration: underline;
+    color: #707070;
 `
