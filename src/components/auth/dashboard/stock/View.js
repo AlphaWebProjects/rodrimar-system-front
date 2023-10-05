@@ -3,7 +3,7 @@ import api from "../../../../services/API"
 import { toast } from "react-toastify"
 import { ButtonWrapper } from "../../ButtonWrapper"
 import Button from "../../../../common/form/Button"
-import { useContext, useState } from "react"
+import { useEffect, useState } from "react"
 import CategorieComponent from "./view-components/CategorieComponent"
 import SubCategorieComponent from "./view-components/SubCategorieComponent"
 import { dummys } from "./Dummys"
@@ -22,6 +22,10 @@ export default function View(){
     const [subCategorieFilter, setSubCategorieFilter] = useState(dummys[1])
     const [newItemSubCategorieId, setNewItemSubCategorieId] = useState('');
     const [newItemName, setNewItemName] = useState('')
+
+    useEffect(() => {
+        
+      }, []);
     
     function productsSubmit(event){
         event.preventDefault();

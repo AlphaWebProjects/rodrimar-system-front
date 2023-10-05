@@ -1,3 +1,5 @@
+ 
+ 
  let categoriesArr = [
     {
         id: 1,
@@ -77,7 +79,6 @@ let subCategoriesArr = [
         createdBy: 'Admin-3'
     },
 ];
-
 
 let productsArr = [
     {

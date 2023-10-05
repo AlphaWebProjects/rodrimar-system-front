@@ -10,6 +10,11 @@ function LogoutSession(token) {
     return axios.delete(`${BASE_URL}/auth/logout`, {headers: { Authorization: `Bearer ${token}`}});
 }
 
+
+function getAllCategories(token){
+    return axios.get(`${BASE_URL}/category`, {headers: { Authorization: `Bearer ${token}`}});
+}
+
 const api = {
     CreateSession,
     LogoutSession
