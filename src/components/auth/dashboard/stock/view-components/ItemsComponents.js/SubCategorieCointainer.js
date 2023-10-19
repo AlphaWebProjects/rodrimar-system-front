@@ -10,13 +10,17 @@ import { toast } from "react-toastify"
 
 export default function SubCategorieContainer(props){
 
-    const filteredCategorie = dummys[0].filter((e) => e.id === props.obj.categorieId)
-    const filteredItems = dummys[2].filter((e) => e.subCategorieId === props.obj.id)
+    //dummys[0] = categorias
+    //dummys[1] = sub categorias
+    //dummys[2] = itens
+    //dummys[3] = itens inseridos
+
+    const filteredCategorie = props.categories.filter((e) => e.categoryId === props.subCategory.mainCategoryId)
+    const filteredItens = props.itens.filter((e) => e.subCategoryId === props.subCategory.subCategoryId)
 
     const [addStockItemData, setAddStockItemData] = useState('')
     const [price, setPrice] = useState('')
     const [addQuantity, setAddQuantity] = useState('')
-    const [filtered, setFiltered] = useState([]) 
 
     function addItem(event){
 
@@ -60,14 +64,14 @@ export default function SubCategorieContainer(props){
     return(
         <>
 
-        <h2>{props.obj.name}</h2>
-        <h3>{`(${filteredCategorie[0].name})`}</h3>
+        <h2>{props.subCategory.subCategoryName}</h2>
+        <h3>{`(${filteredCategorie[0].categoryName})`}</h3>
 
         <ItemAddForm>
             <form>
                 <AddSelect onChange={(e) => setAddStockItemData(e.target.value)} required>
                     
-                    <ItemsToAdd filteredItems={filteredItems}/>
+                    <ItemsToAdd filteredItens={filteredItens}/>
 
                 </AddSelect>
 
@@ -80,28 +84,37 @@ export default function SubCategorieContainer(props){
         </ItemAddForm>
 
         <Container>
-            {filteredItems.map((e) => (
-                <>
-                    <SubContainer>
+            {filteredItens.length < 1 ? <h2>Não há itens registrados nesta sub-categoria</h2> : 
+            
+            <>
+            
+                {filteredItens.map((e) => (
+                    <>
+                        <SubContainer>
 
-                        <img src={test}/>
-                        <h3>{e.name}</h3>
-                        <h3>No estoque: {e.inStock}</h3>
-                        
-                        <div>
+                            <img src={test}/>
+                            <h3>{e.name}</h3>
+                            <h3>No estoque: none</h3>
+                            
+                            <div>
 
-                            <DownSelect>
-                                
-                                <ItensInStock readOnly filtered={filtered} setFiltered={setFiltered} items={dummys[2]} item={e} itemsInStock={dummys[3]}/>                            
-
-                            </DownSelect>
+                                <DownSelect>
                                     
-                        </div>
+                                    <ItensInStock readOnly allItens={props.itens} item={e}/>                            
 
-                    </SubContainer>
+                                </DownSelect>
+                                        
+                            </div>
 
-                </>
-            ))}
+                        </SubContainer>
+
+                    </>
+                ))}
+            
+            </>
+            
+            }
+            
 
         </Container>
         </>

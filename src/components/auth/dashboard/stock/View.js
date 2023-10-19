@@ -3,7 +3,7 @@ import api from "../../../../services/API"
 import { toast } from "react-toastify"
 import { ButtonWrapper } from "../../ButtonWrapper"
 import Button from "../../../../common/form/Button"
-import { useEffect, useState } from "react"
+import { useContext, useState, useEffect} from "react"
 import CategorieComponent from "./view-components/CategorieComponent"
 import SubCategorieComponent from "./view-components/SubCategorieComponent"
 import { dummys } from "./Dummys"
@@ -13,63 +13,139 @@ import UserContext from "../../../../context/UserContext"
 
 export default function View(){
 
-    const [categorieValue, setCategorieValue] = useState('');
-    const [itemInputValue, setItemInputValue] = useState('');
+    const [subCategoryFilterId, setSubCategoryFilterId] = useState('');
+    const [showSubCategoriesPopup, setShowSubCategoriesPopup] = useState(false);
+    const [subCategories, setSubCategories] = useState([]);
+    const [subCategoriesViewBool, setSubCategoriesViewBool] = useState(false);
+    const [newItemSubCategorieId, setNewItemSubCategorieId] = useState('');
+    const [subCategoryInputValue, setSubCategoryInputValue] = useState({name: '', categoryId: ''});
+    const [filteredSubCategoryArr, setFilteredSubCategoryArr] = useState([])
+
+    const [categories, setCategories] = useState([]);
     const [categorieInputValue, setCategorieInputValue] = useState('');
     const [categoriesViewBool, setCategoriesViewBool] = useState(false);
-    const [subCategoriesViewBool, setSubCategoriesViewBool] = useState(false);
     const [showCategoriesPopup, setShowCategoriesPopup] = useState(false);
-    const [subCategorieInputValue, setSubCategorieInputValue] = useState({name: '', categorie: ''});
-    const [showSubCategoriesPopup, setShowSubCategoriesPopup] = useState(false);
-    const [subCategorieFilter, setSubCategorieFilter] = useState(dummys[1])
-    const [newItemSubCategorieId, setNewItemSubCategorieId] = useState('');
-    const [newItemName, setNewItemName] = useState('')
+    
+    const [newItemName, setNewItemName] = useState('');
+    const [itens, setItens] = useState([]);
+    const [itemInputValue, setItemInputValue] = useState('');
+    
+    const [imageFile, setImageFile] = useState(undefined);
+    const { userData } = useContext(UserContext);
 
     useEffect(() => {
+        
+        async function getAll(){
+
+            try {
+
+                const getCategories = await api.getAllCategories(userData.token)
+                const getItens = await api.getAllItens(userData.token)
+                
+                const categoryFilter = getCategories.data.filter((e) => e.isActived === true) 
+
+                const itensFilter = getItens.data.filter((e) => e.enable === true)
+
+                const subCategoriesArr1 = []
+                
+                categoryFilter.map(e => subCategoriesArr1.push(e.allSubCategoriesData))
+                const concat = [].concat(...subCategoriesArr1)   
+                
+                const concatFilter = concat.filter((e) => e.isActived === true)
+            
+                setCategories(categoryFilter)
+                setItens(itensFilter)
+                setSubCategories(concatFilter)
+                return
+
+            } catch (error) {
+                toast.error('Não foi possível obter todos os dados')
+            }
+
+        };
+
+        getAll();
         
       }, []);
     
     function productsSubmit(event){
+
         event.preventDefault();
-        if(categorieValue != ''){
-            const filteredArr = subCategorieFilter.filter((e) => e.categorieId === Number(categorieValue))
-            setSubCategorieFilter(filteredArr)
-        }else{
-            setSubCategorieFilter(dummys[1])
-        }
-    };
 
-    function addCategorie(){
-
-        setShowCategoriesPopup(false)
-        dummys[0].push(
-            {
-                id: (dummys[0].length + 1),
-                name: categorieInputValue,
-                createdBy: 'Admin-1'
-            }
-        )
-    }
-
-    function addSubCategorie(){
-
-        setShowSubCategoriesPopup(false)
-
-        const filteredArr = dummys[0].filter(obj => obj.name === subCategorieInputValue.categorie);
-
-        if(filteredArr.length === 0){
-            toast('Categoria inexistente')
+        if(subCategoryFilterId === ''){
+            toast.dark('Selecione uma sub-categoria');
             return
         }
 
-        dummys[1].push(
-            {
-                id: (dummys[1].length + 1),
-                categorieId: filteredArr[0].id,
-                name: subCategorieInputValue.name,
-                createdBy: 'Admin-2'
+        if(subCategoryFilterId === 'all'){
+            setFilteredSubCategoryArr(subCategories);
+            return
+        }
+
+        const filteredSubCategory = subCategories.filter((e) => e.subCategoryId === Number(subCategoryFilterId))
+
+        setFilteredSubCategoryArr(filteredSubCategory)
+
+        return
+
+    };
+
+    async function addCategorie(){
+
+        try {
+            setShowCategoriesPopup(false)
+            const body = {
+                name: categorieInputValue.charAt(0).toUpperCase() + categorieInputValue.slice(1),
             }
-        )
+
+            await api.createCategory(userData.token, body)
+
+            const getCategories = await api.getAllCategories(userData.token)
+            const categoryFilter = getCategories.data.filter((e) => e.isActived === true)
+            setCategories(categoryFilter)
+
+        } catch (error) {
+            toast.error('Não foi possível criar categoria nesse momento.')
+        }
+
+    }
+
+    async function addSubCategorie(){
+
+        if(subCategoryInputValue.name === ''){
+            toast.dark('Insira um nome válido')
+            return
+        }
+
+        try {
+
+            const fixed = subCategoryInputValue.name.charAt(0).toUpperCase() + subCategoryInputValue.name.slice(1);
+
+            const body = {
+                name: fixed,
+                categoryId: Number(subCategoryInputValue.categoryId)
+            }
+            
+            await api.addSubCategory(userData.token, body)
+            const getCategories = await api.getAllCategories(userData.token) 
+            const categoryFilter = getCategories.data.filter((e) => e.isActived === true) 
+
+            const subCategoriesArr1 = []
+                
+            categoryFilter.map(e => subCategoriesArr1.push(e.allSubCategoriesData))
+            const concat = [].concat(...subCategoriesArr1)   
+                
+            const concatFilter = concat.filter((e) => e.isActived === true)
+            
+            setCategories(categoryFilter)
+            setSubCategories(concatFilter)
+
+        } catch (error) {
+            toast.dark('Não foi possível realizar essa ação no momento')
+            return
+        }
+
+        setShowSubCategoriesPopup(false)
     }
 
     async function addNewItem(){
@@ -98,7 +174,7 @@ export default function View(){
                 toast.dark("Imagem enviada com Sucesso !!") //pode esse toast caso necessario
             }
             const { imageId } = response.data
-            console.log(imageId)
+            //console.log(imageId)
 
         } catch (error) {
             console.log(error)
@@ -125,8 +201,8 @@ export default function View(){
                 <h2 onClick={() => setCategoriesViewBool(false)}>Ocultar</h2>
                 <ViewContainer>
                     <>
-                        {dummys[0].map((obj) => (
-                            <CategorieComponent item={obj} subcategories={dummys[1]}/>
+                        {categories.map((obj) => (
+                            <CategorieComponent item={obj} setSubCategories={setSubCategories} setCategories={setCategories} subcategories={subCategories}/>
                         ))}
                     </>
                 </ViewContainer>
@@ -139,8 +215,12 @@ export default function View(){
             <div>
                 <EditButton show={showSubCategoriesPopup} onClick={() => setShowSubCategoriesPopup(true) }>Adicionar sub-categoria</EditButton>
                 <PopupContainer show={showSubCategoriesPopup}> 
-                    <input value={subCategorieInputValue.name} onChange={(e) => setSubCategorieInputValue({name: e.target.value, categorie: subCategorieInputValue.categorie})} placeholder='Nome...' type='text'></input> 
-                    <input value={subCategorieInputValue.categorie} onChange={(e) => setSubCategorieInputValue({name: subCategorieInputValue.name, categorie: e.target.value})} placeholder='Categoria a ser vinculada...' type='text'></input>
+                    <input value={subCategoryInputValue.name} onChange={(e) => setSubCategoryInputValue({name: e.target.value, categoryId: subCategoryInputValue.categoryId})} placeholder='Nome...' type='text'></input> 
+                    <Select onChange={(e) => setSubCategoryInputValue({name: subCategoryInputValue.name, categoryId: e.target.value})}>
+                        {categories.map((e) => (
+                            <option value={e.categoryId}>{e.categoryName}</option>
+                        ))}
+                    </Select>
                     <h5 onClick={addSubCategorie}> Adicionar </h5>
                     <h4 onClick={() => setShowSubCategoriesPopup(false)}>cancelar</h4>
                 </PopupContainer>
@@ -150,8 +230,8 @@ export default function View(){
                 <h2 onClick={() => setSubCategoriesViewBool(false)}>Ocultar</h2>
                 <ViewContainer>
                     <>
-                        {dummys[1].map((obj) => (
-                            <SubCategorieComponent item={obj} categories={dummys[0]} items={dummys[2]}/>
+                        {subCategories.map((obj) => (
+                            <SubCategorieComponent setCategories={setCategories} setSubCategories={setSubCategories} subCategory={obj} categories={categories} itens={itens}/>
                         ))}
                     </>
                 </ViewContainer>
@@ -181,11 +261,12 @@ export default function View(){
 
                 <>
                     <label htmlFor="selectBox">Busque por categoria:</label>
-                    <Select name="filter" id="filter" onChange={(e) => setCategorieValue(e.target.value)}>
+                    <Select name="filter" id="filter" onChange={(e) => setSubCategoryFilterId(e.target.value)}>
 
-                        <option value="">Todas</option>
-                        {dummys[0].map((obj) => (
-                            <option value={obj.id}>{obj.name}</option>
+                        <option value="">Selecione</option>
+                        <option value="all">Todas</option>
+                        {subCategories.map((obj) => (
+                            <option value={obj.subCategoryId}>{obj.subCategoryName}</option>
                         ))} 
                             
                     </Select>
@@ -198,12 +279,21 @@ export default function View(){
             </form>
 
             <ViewContainer>
-                {subCategorieFilter.map((obj) => (
-                    <SubCategorieContainer obj={obj} dummys={dummys}/>
-                ))}
+
+                {filteredSubCategoryArr.length === 0 ? <h2>Selecione filtro de exibição</h2> : 
+                
+                <>
+                
+                    {filteredSubCategoryArr.map((obj) => (
+                        <SubCategorieContainer subCategory={obj} categories={categories} subCategories={subCategories} itens={itens}/>
+                    ))}
+
+                </>
+                
+                }
+                
             </ViewContainer>
 
-            
             
         </Container>
     )
@@ -295,7 +385,7 @@ height: auto;
 border-radius: 15px;
 display: flex;
 flex-direction: row;
-justify-content: flex-start;
+justify-content: center;
 align-items: center;
 border: 4px solid #0F014D;
 padding: 25px 15px 25px 15px;
