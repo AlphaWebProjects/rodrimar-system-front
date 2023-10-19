@@ -1,32 +1,94 @@
 import styled from "styled-components"
 import api from "../../../../../services/API"
 import { toast } from "react-toastify"
-import { ButtonWrapper } from "../../../ButtonWrapper"
-import Button from "../../../../../common/form/Button"
+import UserContext from "../../../../../context/UserContext"
 import { useContext, useState } from "react"
 
 export default function CategorieComponent(props){
 
-    const subCategoriesFiltered = props.subcategories.filter((obj) => obj.categorieId === props.item.id);
+    const { userData } = useContext(UserContext);
+
+    const subCategoriesFiltered = props.subcategories.filter((obj) => obj.mainCategoryId === props.item.categoryId);
 
     const [showPopup, setShowPopup] = useState(false);
+    const [nameValue, setNameValue] = useState('')
 
-    //ao deletar a categoria, deve-se fazer uma requisição de delete para o back com o id da categoria
+    async function disableCategory(){
+
+        if(subCategoriesFiltered.length > 0){
+            toast.dark("Só é possível desabilitar categorias que não possuem sub-categorias registradas.");
+            return
+        }
+
+        try {
+
+            await api.disableCategory(userData.token, props.item.categoryId);
+            const getCategories = await api.getAllCategories(userData.token)
+            const getSubCategories = await api.getAllSubCategories(userData.token)
+
+            const categoryFilter = getCategories.data.filter((e) => e.isActived === true)
+
+            props.setCategories(categoryFilter)
+            props.setSubCategories(getSubCategories.data)
+
+            toast.dark(`${props.item.categoryName} foi desabilitada com sucesso`)
+
+            return
+
+        } catch (error) {
+            toast.dark('Não foi possível desabilitar a categoria no momento')
+            return
+        }
+
+    }
+
+    async function editCategory(){
+
+        if(nameValue === ''){
+            toast.dark('A insira um nome válido')
+        }
+
+        const fixed = nameValue.charAt(0).toUpperCase() + nameValue.slice(1);
+
+        try {
+
+            const body = {
+                newName: fixed,
+                categoryId: props.item.categoryId
+            }
+
+            await api.editCategory(userData.token, body)
+            const getCategories = await api.getAllCategories(userData.token)
+            const getSubCategories = await api.getAllSubCategories(userData.token)
+
+            const categoryFilter = getCategories.data.filter((e) => e.isActived === true)
+
+            props.setCategories(categoryFilter)
+            props.setSubCategories(getSubCategories.data)
+
+            setShowPopup(false)
+            setNameValue('')
+
+        } catch (error) {
+            
+        }
+
+    }
 
     return(
         <>
         <Container>
-            <h2>{props.item.name}</h2>
+            <h2>{props.item.categoryName}</h2>
             <h3>Sub-categorias cadastradas: {subCategoriesFiltered.length}</h3>
-            <h3>Criado por: {props.item.createdBy}</h3>
+            <h3>Criado por: {props.item.createdBy.userName} ({props.item.createdBy.userRole})</h3>
 
             <div>
                 <EditButton show={showPopup} onClick={() => setShowPopup(true) }>Editar categoria</EditButton>
                 <PopupContainer show={showPopup}> 
                     <label >Novo nome:</label>
-                    <input placeholder='Digite aqui...' type='text'></input> 
-                    <h4> Deletar categoria </h4>
-                    <h5 onClick={() => setShowPopup(false)}> Pronto </h5>
+                    <input value={nameValue} onChange={(e) => setNameValue(e.target.value)} placeholder='Digite aqui...' type='text'></input> 
+                    <h4 onClick={disableCategory} > Desabilitar categoria </h4>
+                    <h5 onClick={editCategory}> Pronto </h5>
                     <h4 onClick={() => setShowPopup(false)}>cancelar</h4>
                 </PopupContainer>
             </div>
@@ -56,7 +118,7 @@ h2{
 h3{
     font-size: 15px;
     color: #0F014D;
-    line-height: 20px;
+    line-height: 35px;
 }
 h4{
     font-size: 13px;
