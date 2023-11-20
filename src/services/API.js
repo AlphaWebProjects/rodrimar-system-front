@@ -16,7 +16,7 @@ function CreateImage({formData, token}) {
     return axios.post(`${BASE_URL}/image`, formData, {headers: { Authorization: `Bearer ${token}`}});
 }
 
-
+//categorias, sub-categorias e itens
 function getAllCategories(token){
     return axios.get(`${BASE_URL}/category/alldata`, {headers: { Authorization: `Bearer ${token}`}});
 }
@@ -47,6 +47,43 @@ function addSubCategory(token, body){
 function getAllInsertedItens(token){
     return axios.get(`${BASE_URL}/insertItem`, {headers: { Authorization: `Bearer ${token}`}});
 }
+function insertItemInStock(token, body){
+    return axios.post(`${BASE_URL}/insertItem`, body, {headers: { Authorization: `Bearer ${token}`}});
+}
+function createNewItem(token, body){
+    return axios.post(`${BASE_URL}/itens`, body, {headers: { Authorization: `Bearer ${token}`}});
+}
+function deleteItem(token, body){
+    return axios.post(`${BASE_URL}/deletedItem`, body, {headers: { Authorization: `Bearer ${token}`}});
+}
+function getDeletedItens(token){
+    return axios.get(`${BASE_URL}/deletedItem`, {headers: { Authorization: `Bearer ${token}`}});
+}
+//
+
+//imagens
+function getAllImages(token){
+    return axios.get(`${BASE_URL}/image`, {headers: { Authorization: `Bearer ${token}`}});
+}
+//
+
+//placas
+function getAllPlates(token){
+    return axios.get(`${BASE_URL}/licenseplate`, {headers: { Authorization: `Bearer ${token}`}});
+}
+function createPlates(token, body){
+    return axios.post(`${BASE_URL}/licenseplate`, body, {headers: { Authorization: `Bearer ${token}`}});
+}
+//
+
+//fornecedores
+function createSupplier(token, body){
+    return axios.post(`${BASE_URL}/supplier`, body, {headers: { Authorization: `Bearer ${token}`}});
+}
+function getSuppliers(token){
+    return axios.get(`${BASE_URL}/supplier`, {headers: { Authorization: `Bearer ${token}`}});
+}
+//
 
 const api = {
     CreateSession,
@@ -62,7 +99,16 @@ const api = {
     editSubCategory,
     disableSubCategory,
     addSubCategory,
-    getAllInsertedItens
+    getAllInsertedItens,
+    insertItemInStock,
+    getAllImages,
+    createNewItem,
+    getAllPlates,
+    deleteItem,
+    createPlates,
+    getDeletedItens,
+    createSupplier,
+    getSuppliers
 };
 
 export default api;

@@ -1,87 +1,126 @@
 import styled from "styled-components";
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import ItensInStock from "./ItemsInStock";
-import { dummys } from "../../Dummys";
-import Button from "../../../../../../common/form/Button";
-import { ButtonWrapper } from "../../../../ButtonWrapper";
+import api from "../../../../../../services/API";
 import test from '../../../../../../assets/images/products/test.png';
 import ItemsToAdd from "./ItemsToAdd";
 import { toast } from "react-toastify"
+import UserContext from "../../../../../../context/UserContext";
+import SubCategorieExtraData from "./SubCategorieExtraData";
+import ItensDisplay from "./ItensDisplay";
 
-export default function SubCategorieContainer(props){
+export default function SubCategorieContainer(
+    {allImages, setAllImages, subCategory, categories, subCategories, itens, useEffectBool, setUseEffectBool, setReceptBillItens, receptBillItens, receptBillQuantity, setReceptBillQuantity}
+    ){
 
-    //dummys[0] = categorias
-    //dummys[1] = sub categorias
-    //dummys[2] = itens
-    //dummys[3] = itens inseridos
+    const { userData } = useContext(UserContext);
 
-    const filteredCategorie = props.categories.filter((e) => e.categoryId === props.subCategory.mainCategoryId)
-    const filteredItens = props.itens.filter((e) => e.subCategoryId === props.subCategory.subCategoryId)
+    const filteredCategorie = categories.filter((e) => e.categoryId === subCategory.mainCategoryId);
 
-    const [addStockItemData, setAddStockItemData] = useState('')
-    const [price, setPrice] = useState('')
-    const [addQuantity, setAddQuantity] = useState('')
+    const [filteredItens, setFilteredItens] = useState(itens.filter((e) => e.subCategoryId === subCategory.subCategoryId))
+    const [downStockItemId, setDownStockItemId] = useState(0);
+    const [price, setPrice] = useState('');
+    const [downQuantity, setDownQuantity] = useState('');
+    const [plates, setPlates] = useState([]);
+    const [plateId, setPlateId] = useState('')
 
-    function addItem(event){
+    const [insertedItensUseEffectBool, setInsertedItensUseEffectBool] = useState(true)
+
+    useEffect(() => {
+        
+        async function getAll(){
+
+            try {
+
+                const getPlates = await api.getAllPlates(userData.token)
+                const getImages = await api.getAllImages(userData.token);
+                const getItens = await api.getAllItens(userData.token)
+
+                setAllImages(getImages.data);
+                const onlyEnabledItens = getItens.data.filter((e) => e.enable === true);
+
+                
+                const filtered = onlyEnabledItens.filter((e) => e.subCategoryId === subCategory.subCategoryId)
+
+                setFilteredItens(filtered)
+
+                setPlates(getPlates.data)
+
+                return
+
+            } catch (error) {
+                console.log(error)
+                toast.error('Não foi possível obter todos os dados')
+            }
+
+        };
+
+        getAll();
+        
+      }, [useEffectBool]);
+
+    async function downItem(event){
 
         event.preventDefault();
 
-        if(addStockItemData === ''){
-            toast('Selecione um item')
+        if(downStockItemId === 0){
+            toast.error('Selecione um item')
             return
         }
 
-        const priceConverted = Number(price)
-        if(priceConverted <= 0 || priceConverted === '' || price === ''){
-            toast('Dê um preço válido ao item')
+        const quantityConverted = Math.floor(Number(downQuantity))
+        if(quantityConverted <= 0 || quantityConverted === '' || downQuantity === ''){
+            toast.error('Insira uma quantidade válida')
             return
         }
 
-        const quantityConverted = Math.floor(Number(addQuantity))
-        if(quantityConverted <= 0 || quantityConverted === '' || addQuantity === ''){
-            toast('Insira uma quantidade válida')
+        if(plateId === ''){
+            toast.error('Selecione uma placa');
             return
         }
 
-        if(quantityConverted > 10){
-            toast('Máximo de itens por vez atingido')
+        console.log(itens[0].itemId, downStockItemId)
+
+        const stockItemFilter = itens.filter((i) => i.itemId === Number(downStockItemId))
+
+        console.log(stockItemFilter)
+        
+        if(Number(stockItemFilter[0].stock) < Number(downQuantity)){
+            toast.error('Não há itens no estoque o suficiente para essa quantidade de baixas');
             return
         }
 
-        const obj = {
-            id: (dummys[3].length + 1),
-            itemId: Number(addStockItemData[0]),
-            name: addStockItemData.slice(4),
-            insertedAt: '25/09/2023',
-            value: priceConverted.toFixed(2),
-            insertedBy: 'Admin-1'
-        };
+        const downQuantityNumber = Number(downQuantity)
 
-        dummys[3].push(obj);
+        const body = {
+                itemId: Number(downStockItemId),
+                deletedQuantity: Number(downQuantityNumber.toFixed(2)),
+                licenseId: Number(plateId)
+            }
+
+        await api.deleteItem(userData.token, body)
+
+        setInsertedItensUseEffectBool(!insertedItensUseEffectBool)
+
+        setDownStockItemId(0);
+        setPrice('');
+        setDownQuantity('');
+        setPlateId('');
+        setFilteredItens(itens.filter((e) => e.subCategoryId === subCategory.subCategoryId))
+        setUseEffectBool(!useEffectBool)
+
+        toast.dark('Item adicionado ao estoque com sucesso.')
+
+        return
 
     }
+    
 
     return(
         <>
 
-        <h2>{props.subCategory.subCategoryName}</h2>
+        <h2>{subCategory.subCategoryName}</h2>
         <h3>{`(${filteredCategorie[0].categoryName})`}</h3>
-
-        <ItemAddForm>
-            <form>
-                <AddSelect onChange={(e) => setAddStockItemData(e.target.value)} required>
-                    
-                    <ItemsToAdd filteredItens={filteredItens}/>
-
-                </AddSelect>
-
-                <input value={price} onChange={(e) => setPrice(e.target.value)} required type='number' placeholder='Preço do item...'></input>
-
-                <input value={addQuantity} onChange={(e) => setAddQuantity(e.target.value)} required type='number' placeholder='Quantidade...'></input>
-
-                <button onClick={addItem}>Adicionar item ao estoque</button>
-            </form>
-        </ItemAddForm>
 
         <Container>
             {filteredItens.length < 1 ? <h2>Não há itens registrados nesta sub-categoria</h2> : 
@@ -90,23 +129,14 @@ export default function SubCategorieContainer(props){
             
                 {filteredItens.map((e) => (
                     <>
-                        <SubContainer>
-
-                            <img src={test}/>
-                            <h3>{e.name}</h3>
-                            <h3>No estoque: none</h3>
-                            
-                            <div>
-
-                                <DownSelect>
-                                    
-                                    <ItensInStock readOnly allItens={props.itens} item={e}/>                            
-
-                                </DownSelect>
-                                        
-                            </div>
-
-                        </SubContainer>
+                        
+                        <ItensDisplay 
+                        e={e} 
+                        receptBillItens={receptBillItens} 
+                        setReceptBillItens={setReceptBillItens}
+                        receptBillQuantity={receptBillQuantity}
+                        setReceptBillQuantity={setReceptBillQuantity}
+                        />
 
                     </>
                 ))}
@@ -117,6 +147,31 @@ export default function SubCategorieContainer(props){
             
 
         </Container>
+
+        <ItemAddForm>
+            <form>
+                <AddSelect value={downStockItemId} onChange={(e) => setDownStockItemId(e.target.value)} required>
+                    
+                    <ItemsToAdd filteredItens={filteredItens}/>
+
+                </AddSelect>
+
+                <AddSelect value={plateId} onChange={(e) => setPlateId(e.target.value)} required>
+                    
+                    <option value=''> Selecione uma placa </option>
+                    {plates.map((p) => (
+
+                        <option value={p.id}>{p.license}</option>
+
+                    ))}
+
+                </AddSelect>
+
+                <input value={downQuantity} onChange={(e) => setDownQuantity(e.target.value)} required type='number' placeholder='Quantidade...'></input>
+
+                <button onClick={downItem}>Dar baixa</button>
+            </form>
+        </ItemAddForm>
         </>
     )
 
@@ -126,36 +181,39 @@ const Container = styled.div`
 width: 100%;
 height: auto;
 display: flex;
-flex-direction: row;
+flex-direction: column;
 justify-content: center;
 align-items: center;
 border: 2px solid #0F014D;
-padding: 20px 20px 20px 20px;
+padding: 5px 5px 5px 5px;
 border-radius: 10px;
-margin: 0 0 40px 0;
+margin: 10px 0 10px 0;
 flex-wrap: wrap;
-
 h3{
-    font-size: 15px;
+    font-size: 15px !important;
     color: #0F014D; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 h5{
-    font-size: 13px;
+    font-size: 20px !important;
     color: #0F014D;
     line-height: 20px;
-    margin-top: 5px;
+    margin-top: 0 !important;
     &:hover{
         color: green;
         cursor: pointer;
     } 
 }
 h4{
-    font-size: 13px;
+    font-size: 12px;
     color: #0F014D;
     line-height: 20px;
-    margin-top: 5px;
+    margin-top: 0px !important;
     &:hover{
-        color: red;
+        color: #0F014D !important;
         cursor: pointer;
     }
 }
@@ -164,62 +222,13 @@ img{
     height: 95px;
 }
 `
-const SubContainer = styled.div`
-width: 24%;
-height: auto;
-display: flex;
-flex-direction: column;
-justify-content: center;
-align-items: center;
-border: 1px solid #0F014D;
-padding: 15px 0px 15px 0px;
-margin: 10px 5px 10px 0;
-border-radius: 5px;
-div{
-    width: 90%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-form{
-    width: 90%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-}
-input{
-    margin: 8px 0 0 0 !important;
-    width: 50% !important;
-    height: 30px !important;
-    border: 1px solid #0F014D !important;
-    border-radius: 6px !important;
-    }
-`
-const DownSelect = styled.div`
-margin-top: 8px;
-width: 90%;
-height: 120px !important;
-border-radius: 6px;
-select{
-    width: 100%;
-    height: 100%;
-    border: 1px solid black;
-    border-radius: 6px;
-}
-input{
-    margin: 8px 0 0 0 !important;
-    width: 50% !important;
-    height: 60% !important;
-    border: 1px solid #0F014D !important;
-    border-radius: 6px !important;
-}
-`
+
 const AddSelect = styled.select`
 width: 60%;
 height: 30px;
 border: 1px solid #0F014D;
 border-radius: 6px;
+margin-left: 10px;
 `
 const ItemAddForm = styled.div `
 display: flex !important;
@@ -227,6 +236,7 @@ align-items: center !important;
 justify-content: center !important;
 flex-direction: row !important;
 margin-left: 15px !important;
+margin-bottom: 55px;
 form{
     width: 100%;
     display: flex !important;
@@ -236,6 +246,7 @@ form{
     button{
         background-color: #0F014D;
         border-radius: 8px;
+        width: 20%;
         color: white;
         margin: 0 0 2px 8px;
         &:hover{

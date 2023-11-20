@@ -1,0 +1,6 @@
+itemId: joi.number().required(),
+    price: joi.number().required(),
+    insertedQuantity:  joi.number().positive().integer().required(),
+    supplierId: joi.number().required().positive(),
+    receiptBill:  joi.string().optional(),
+    receiptBillEmissionDate:  joi.string().optional(),Ss

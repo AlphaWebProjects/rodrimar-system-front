@@ -110,6 +110,9 @@ align-items: center;
 border: 2px solid #0F014D;
 padding: 10px 0 10px 0;
 margin: 0 3px 10px 0;
+input{
+    margin: 10px 0 0 10px;
+}
 h2{
     font-size: 20px;
     color: #0F014D;
