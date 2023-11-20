@@ -7,29 +7,37 @@ import { toast } from "react-toastify"
 export default function SubCategorieComponent(props){
 
     const [showPopup, setShowPopup] = useState(false);
-    const [nameValue, setNameValue] =useState('');
+    const [inputValue, setInputValue] =useState({newName: '', categoryId: ''});
     const { userData } = useContext(UserContext);
 
     const subCategoriesFiltered = props.itens.filter((obj) => obj.subCategoryId === props.subCategory.subCategoryId);
     const categoriesFiltered = props.categories.filter((obj) => obj.categoryId === props.subCategory.mainCategoryId);
 
-    async function editSubCategory(){
+    function cancelAction(){
 
         setShowPopup(false);
+        setInputValue({newName: '', categoryId: ''})
 
-        if(nameValue === ''){
+    }
+
+    async function editSubCategory(){
+
+        if(inputValue.newName === ''){
             toast.dark('Insira um nome válido');
             return
         }
 
-        try {
+        if(inputValue.categoryId === ''){
+            toast.dark('Selecione uma categoria');
+            return
+        }
 
-            const fixed = nameValue.charAt(0).toUpperCase() + nameValue.slice(1);
+        try {
             
             const body = {
-                newName: fixed,
-                subCategoryId: props.subCategory.subCategoryId,
-                categoryId: props.subCategory.mainCategoryId
+                newName: inputValue.newName,
+                subCategoryId: Number(props.subCategory.subCategoryId),
+                categoryId: Number(inputValue.categoryId)
             }
     
             await api.editSubCategory(userData.token, body);
@@ -44,10 +52,9 @@ export default function SubCategorieComponent(props){
                 
             const concatFilter = concat.filter((e) => e.isActived === true);
 
-            //console.log(concatFilter, 'concat')
-
             props.setSubCategories(concatFilter);
             props.setCategories(categoryFilter);
+            setShowPopup(false);
 
         } catch (error) {
             toast.dark('Não foi possível realizar essa ação no momento!')
@@ -100,11 +107,29 @@ export default function SubCategorieComponent(props){
             <div>
                 <EditButton show={showPopup} onClick={() => setShowPopup(true) }>Editar sub-categoria</EditButton>
                 <PopupContainer show={showPopup}> 
-                    <label >Novo nome:</label>
-                    <input value={nameValue} onChange={(e) => setNameValue(e.target.value)} placeholder='Digite aqui...' type='text'></input> 
+
+                    <LabelWithMargin>Novo nome:</LabelWithMargin>
+
+                    <input 
+                    value={inputValue.newName} 
+                    onChange={(e) => setInputValue({newName: e.target.value, categoryId: inputValue.categoryId})} 
+                    placeholder='Digite aqui...' 
+                    type='text'>
+                    </input> 
+
+                    <select onChange={(e) => setInputValue({newName: inputValue.newName, categoryId: e.target.value})}>
+                        <option value=''>Selecione</option>
+                        {props.categories.map((e) => 
+                        (
+                            <option value={e.categoryId}>{e.categoryName}</option>
+                        )
+                        )}
+                    </select>
+
                     <h4 onClick={disableSubCategory}> Deletar sub-categoria </h4>
                     <h5 onClick={editSubCategory}> Pronto </h5>
-                    <h4 onClick={() => setShowPopup(false)}>cancelar</h4>
+                    <h4 onClick={cancelAction}>cancelar</h4>
+
                 </PopupContainer>
             </div>
         </Container>
@@ -124,6 +149,9 @@ align-items: center;
 border: 2px solid #0F014D;
 padding: 10px 0 10px 0;
 margin: 0 3px 20px 0;
+label{
+    margin-bottom: 8px !important;
+}
 h2{
     font-size: 20px;
     color: #0F014D;
@@ -156,6 +184,10 @@ h5{
 }
 `
 
+const LabelWithMargin = styled.label`
+margin-bottom: 8px;
+`
+
 const EditButton = styled.button`
 display: ${props => (props.show ? 'none' : 'block')};
 border-radius: 10px;
@@ -179,6 +211,16 @@ input{
     border: 1px solid #0F014D;
     border-radius: 10px;
     height: 25px;
-    margin-left: 10px;
+    margin: 10px 0 0 10px;
+}
+select{
+    width: 83%;
+    border: 1px solid #0F014D;
+    border-radius: 10px;
+    height: 25px;
+    margin: 10px 0 0 10px;
+}
+label{
+    margin-bottom: 8px !important;
 }
 `;

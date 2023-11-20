@@ -62,6 +62,10 @@ export default function CreateImage({imageFile, setImageFile}){
 }
 const Container = styled.div`
     width: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     > label {
         font-size: 15px;
         margin: 0 !important;
